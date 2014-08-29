@@ -1,0 +1,918 @@
+﻿<script type="text/javascript">
+<!--
+
+
+    function InputCheck(){
+        var flaga = [0,0,0,0,0], UserInput = [0,0,0,0,0];
+        var flagb = []
+        var i, i2, j, k, check = 0, UserInput2 = [];
+        var elementa = [0,0,0,0,0], elementb = [], s=[], wq=[];
+        var tbody = [0,0], tr=[0,0], td=[0,0], p1=new Array(), max=101;
+        var width=55, height=40, add=0, add2=0, add3=0;
+        var tablesave=[];
+        //
+        for ( i = 0 ; i < 32 ; i = i + 1 ) {
+            flagb[i] = [0,0,0,0,0,0,0,0,0,0,0,0,0];
+            UserInput2[i] = [0,0,0,0,0,0,0,0,0,0,0,0,0];
+            elementb[i] = [0,0,0,0,0,0,0,0,0,0,0,0,0];
+            s[i] = [0,0,0,0,0,0,0,0,0,0,0,0,0];
+            wq[i] = [0,0,0,0,0,0,0,0,0,0,0,0,0];
+            tablesave[i] = [0,0,0,0,0,0,0,0,0,0,0,0,0];
+        }
+        for( i=0; i<max; i++ ){
+            p1[i] = new Array();
+        }
+        for( i=0; i<max; i++ ){
+            for( j=0; j<max; j++ ){
+                p1[i][j] = [0,0];
+            }
+        }
+        for( i=0; i<13; i++ ){
+            for( j=0; j<32; j++ ){
+                tablesave[i][j] = [0,0];
+            }
+        }
+        var cellx = 1 + Number(document.getElementById("a5").value);
+        var celly = 1 + Number(document.getElementById("a6").value);
+        //
+        for( i=0; i<5; i++ ){
+            elementa[i] = document.getElementById("a"+i);
+            if(i==2){
+                if(elementa[i].value=="" || elementa[i].value <= 0 || elementa[i].value　> 100){
+                    flaga[i] =1;
+                }
+            }
+            else{
+                if(elementa[i].value == "" || elementa[i].value <= 0){
+                    flaga[i] = 1;
+                }
+            }
+        }
+        //
+        for( i=1; i<celly; i++ ){
+            for( j=1; j<cellx; j++ ){
+                elementb[i][j] = document.getElementById("b"+i+"_"+j);
+                if(elementb[i][j]!=null){
+                    if(elementb[i][j].value=="" || elementb[i][j].value < 0 ){
+                    flagb[i][j] = 1;
+                    }
+                }
+            }
+        }
+        //
+        //
+        for( i=0; i<5; i++ ){
+            if(flaga[i]==1){//
+                if(i==0){i2="Average Handling Time";}
+                else if(i==1){i2="Target Speed of Answer";}
+                else if(i==2){i2="Answered Ratio within Target";}
+                else if(i==3){i2="Traffic Volume Interval";}
+                else{i2="Maximum Agents [agents]";}
+                window.alert(i2+"の値が不正です");//
+                check = 1;
+                break;
+            }
+        }
+        //
+        if( check==0 ){
+            for( i=1; i<celly; i++ ){
+                for( j=1; j<cellx; j++ ){
+                    if(flagb[i][j]==1){//チェックしておかしければ(入力漏れや負の値)
+                        window.alert(i+"行"+j+"列の値が不正です");//
+                        check = 1;
+                        break;
+                    }
+                }
+                if(check==1){
+                break;
+                }
+            }
+        }
+        //
+        if(check == 0){
+            //
+            for( i = 0; i < 5; i++ ){
+                UserInput[i] = InputNum(i);
+            }
+            for( i = 0; i < celly; i++ ){
+                if( i > 0 ){
+                    for( j = 0; j < cellx; j++ ){
+                        if( j>0 ){
+                            //
+                            UserInput2[i][j] = InputNum2(i,j);
+                            //sを計算
+                            s[i][j] = ErlangCalc( UserInput[0], UserInput[1], UserInput[2], UserInput[3], UserInput[4], UserInput2[i][j] );
+                            if( s[i][j] > (-1) ){//
+                                //
+                                wq[i][j] = ErlangCalc2( UserInput[0], UserInput[3], s[i][j], i, j, UserInput2[i][j] );
+                            }
+                            else{
+                                s[i][j] = -"NA";
+                                wq[i][j] = "NA";
+                            }
+                        }
+                        else{
+                            s[i][j]=0, wq[i][j]=0;
+                        }
+                    }
+                }
+                else{
+                    for( j=0; j<cellx; j++ ){
+                    s[i][j]=0, wq[i][j]=0;
+                    }
+                }
+            }
+        }
+
+        //
+        for( i=1; i<celly; i++ ){
+            for( j=1; j<cellx; j++ ){
+                s[i][j] = Math.round(s[i][j]);
+                wq[i][j] = Math.round(wq[i][j]);
+            }
+        }
+        //既にある表を削除する
+        for( k=0; k<=1; k++ ){
+            for( i=0; i<celly; i++ ){
+                for( j=0; j<cellx.value; j++ ){
+                    if( document.getElementById("b"+i+"_"+j+"_"+k) != null ){
+                        if( document.getElementById("b"+i+"_"+j+"_"+k).value != null ){
+                            tablesave[i][j][k]= Number(document.getElementById("b"+i+"_"+j+"_"+k).value);
+                        }
+                    }
+                }
+            }
+        }
+        tabledel(1);
+        //
+        //
+        for( k=0; k<=2; k++ ){
+            if(k<2){
+                tbody[k] = document.createElement("tbody");
+                tbody[k].id = "tbody"+k;
+                l=k+1;
+                document.getElementById("table"+l).appendChild(tbody[k])
+                for( i=0; i<celly; i++ ){
+                    if( tablesave[i][0][k] != null ){
+                        tr[k] = document.createElement("tr");
+                        tbody[k].appendChild(tr[k]);
+                        for( j=0; j<cellx; j++ ){
+                            if( tablesave[0][j][k] != null ){
+                                td[k] = document.createElement("td");
+                                td[k].width=width;
+                                td[k].height=height;
+                                td[k].align="right";
+                                tr[k].appendChild(td[k]);
+                                p1[i][j][k] = document.createElement("p");
+                                td[k].appendChild(p1[i][j][k]);
+                                p1[i][j][k].id = "pid"+i+"_"+j+"_"+k;
+                                //4×2の表の計算
+                                if( i!=0 && j!=00 && k==0 ){
+                                    if( s[i][j] > 0 ){
+                                        add += UserInput2[i][j];
+                                        add2 += s[i][j];
+                                        add3 += (UserInput2[i][j] * wq[i][j])
+                                    }
+                                }
+                                if( k==0 ){
+                                    //sの表を出力
+                                    TableOutput(s[i][j], i, j, k);
+                                }
+                                else{
+                                    //wqの表を出力
+                                    TableOutput2(wq[i][j], i, j, k);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            //4×2の表の計算
+            var output1 = add;
+            var output2 = (add2 * UserInput[3])/ 60;
+            var output3=0;
+            if(output2==0){}
+            else{output3 = output1 / output2;}
+            output3 = output3 * 100;
+            output3 = Math.round(output3);
+            output3 = output3 / 100;
+            var output4=0;
+            if(output1==0){}
+            else{output4 = add3 / add;}
+            output4 = Math.round(output4);
+
+            if( k==2 ){
+                tbody[k] = document.createElement("tbody");
+                tbody[k].id = "resulttbody";
+                l=k+1;
+                document.getElementById("table"+l).appendChild(tbody[k])
+
+                for( i=0; i<4; i++ ){
+                    tr[k] = document.createElement("tr");
+                    tbody[k].appendChild(tr[k]);
+                    for( j=0; j<2; j++ ){
+                        td[k] = document.createElement("td");
+                        if( j==0 ){
+                            td[k].width=300;
+                            td[k].height=40;
+                            td[k].align="right";
+                        }
+                        else{
+                            td[k].width=100;
+                            td[k].height=40;
+                            td[k].align="right";
+                        }
+                        tr[k].appendChild(td[k]);
+                        p1[i][j][k] = document.createElement("p");
+                        td[k].appendChild(p1[i][j][k]);
+                        p1[i][j][k].id = "pid"+i+"_"+j+"_"+k;
+                        //4×2の表を出力
+                        TableOutput3( output1, output2, output3, output4, i, j, k );
+                    }
+                }
+            }
+        }
+    }
+
+    //ユーザーが入力した表以外の値を返す
+    function InputNum(i){
+        return Number(document.getElementById("a"+i).value);
+    }
+    //ユーザーが入力した表の値を返す
+    function InputNum2(i,j){
+        if(document.getElementById("b"+i+"_"+j)!=null){
+            return Number(document.getElementById("b"+i+"_"+j).value);
+        }
+    }
+    //ユーザーが入力したセルの数を返す
+    function InputNum3(i){
+        return Number(document.getElementById("a"+5).value);
+    }
+
+    //表を作る
+    function TableCreate(l){
+        //入力フォームを最初に作る
+        if(l==1){
+            inputCreate();
+            inputCreate2();
+        }
+        var i, j, k, width=55, height=40, size=3;
+        var tbody=[0,0], tr=[0,0], td=[0,0];
+        var cellx = 1 + Number(document.getElementById("a5").value);
+        var celly = 1 + Number(document.getElementById("a6").value);
+        p2 = new Array(celly);
+        for( i=0; i<celly; i++ ){
+            p2[i] = new Array(cellx)
+        }
+        for( i=0; i<celly; i++ ){
+            for( j=0; j<cellx; j++ ){
+                p2[i][j] = new Array(2);
+            }
+        }
+        //
+        var tbody = document.createElement("tbody");
+        tbody.id = "tbody";
+        document.getElementById("table0").appendChild(tbody);
+        for( i=0; i<celly; i++ ){
+            var tr = document.createElement("tr");
+            tbody.appendChild(tr);
+            for( j=0; j<cellx; j++ ){
+                var td = document.createElement("td");
+                td.width=width;
+                td.height=height;
+                td.align="right";
+                tr.appendChild(td);
+                var p1 = document.createElement("p");
+                td.appendChild(p1);
+                if(i==0 && j==0){}
+                else if(i==0){
+                    var text1 = document.createTextNode("<"+j+">");
+                    p1.appendChild(text1);
+                }
+                else if(j==0){
+                    var text1 = document.createTextNode("<"+i+">");
+                    p1.appendChild(text1);
+                }
+                else{
+                    var input1 = document.createElement("input");
+                    p1.appendChild(input1);
+                    input1.style.border = "0px";
+                    input1.type = "number";
+                    input1.id = "b"+i+"_"+j;
+                    input1.value = 0;
+                    input1.style.width = "50px";
+                    input1.style.height = "20px";
+                }
+            }
+        }
+        for( k=0; k<=1; k++ ){
+            //
+            tbody[k] = document.createElement("tbody");
+            tbody[k].id = "tbody"+k;
+            var l=k+1;
+            document.getElementById("table"+l).appendChild(tbody[k]);
+            for( i=0; i<celly; i++ ){
+                tr[k] = document.createElement("tr");
+                tbody[k].appendChild(tr[k]);
+                for( j=0; j<cellx; j++ ){
+                    td[k] = document.createElement("td");
+                    td[k].width=width;
+                    td[k].height=height;
+                    td[k].align="right";
+                    tr[k].appendChild(td[k]);
+                    p2[i][j][k] = document.createElement("p");
+                    td[k].appendChild(p2[i][j][k]);
+                    p2[i][j][k].id = "pid"+i+"_"+j+"_"+k;
+                    if(i==0 && j==0){}
+                    else if(i==0){
+                        var font1 = document.createElement("font");
+                        var text1 = document.createTextNode("<"+j+">");
+                        p2[i][j][k].appendChild(font1);
+                        font1.appendChild(text1);
+                        font1.size=size;
+                    }
+                    else if(j==0){
+                        var font1 = document.createElement("font");
+                        var text1 = document.createTextNode("<"+i+">");
+                        p2[i][j][k].appendChild(font1);
+                        font1.appendChild(text1);
+                        font1.size=size;
+                    }
+                    else{
+                        var font1 = document.createElement("font");
+                        var text1 = document.createTextNode(0);
+                        p2[i][j][k].appendChild(text1);
+                        p2[i][j][k].appendChild(font1);
+                        font1.appendChild(text1);
+                        font1.size=size;
+                    }
+                }
+            }
+        }
+        TableCreate2();
+    }
+
+    //結果を出す
+    function TableCreate2(){
+        var width=300, height=40, width2=100, height2=40, size=3;
+        //
+        var tbody = document.createElement("tbody");
+        tbody.id = "resulttbody";
+        document.getElementById("table3").appendChild(tbody);
+        for( i=0; i<4; i++ ){
+            var tr = document.createElement("tr");
+            tbody.appendChild(tr);
+            for( j=0; j<2; j++ ){
+                var td = document.createElement("td");
+                if( j==0 ){
+                    td.width=width;
+                    td.height=height;
+                    td.align="right";
+                }
+                else{
+                    td.width=width2;
+                    td.height=height2;
+                    td.align="right";
+                }
+                tr.appendChild(td);
+                var p = document.createElement("p");
+                td.appendChild(p);
+                if(i==0 && j==0){
+                    var text = document.createTextNode("総トラフィック数 [traffics]");
+                    p.appendChild(text);
+                }
+                else if(i==1 && j==0){
+                    var text = document.createTextNode("総勤務時間数 [hr]");
+                    p.appendChild(text);
+                }
+                else if(i==2 && j==0){
+                    var text = document.createTextNode("生産性 [traffic/man hour]");
+                    p.appendChild(text);
+                }
+                else if(i==3 && j==0){
+                    var text = document.createTextNode("平均応答時間 [sec]");
+                    p.appendChild(text);
+                }
+                else{
+                    var text = document.createTextNode(0);
+                    p.appendChild(text);
+                }
+            }
+        }
+    }
+
+    //
+    function inputCreate(){
+        var i, j, width=300; height=40, width2=100, height2=40;
+        //親から順に「table」,「tbody」,「tr」,「td」複数個の順で並べる
+        var tbody = document.createElement("tbody");
+        tbody.id = "inputtbody";
+        document.getElementById("inputtable").appendChild(tbody);
+        for( i=0; i<2; i++ ){
+            var tr = document.createElement("tr");
+            tbody.appendChild(tr);
+            for( j=0; j<2; j++ ){
+                var td = document.createElement("td");
+                if( j==0 ){
+                    td.width=width;
+                    td.height=height;
+                    td.align="right";
+                }
+                else{
+                    td.width=width2;
+                    td.height=height2;
+                }
+                tr.appendChild(td);
+                var p = document.createElement("p");
+                td.appendChild(p);
+                if(i==0 && j==0){
+                    var text = document.createTextNode("表のX方向のセル数");
+                    p.appendChild(text);
+                }
+                else if(i==1 && j==0){
+                    var text = document.createTextNode("表のY方向のセル数");
+                    p.appendChild(text);
+                }
+                else{
+                    var input = document.createElement("input");
+                    p.appendChild(input);
+                    input.type ="number";
+                    var i2=i+5;
+                    input.id = "a"+i2;
+                    if( i==0 ){
+                        input.value = 8;
+                    }
+                    else{
+                        input.value = 1;
+                    }
+                    input.style.width = "100px";
+                    input.style.height = "20px";
+                }
+            }
+        }
+    }
+
+    //入力フォームを作る
+    function inputCreate2(){var i, j, width=300; height=40, width2=100, height2=40;
+        //親から順に「table」,「tbody」,「tr」,「td」複数個の順で並べる
+        var tbody = document.createElement("tbody");
+        tbody.id = "inputtbody";
+        document.getElementById("inputtable2").appendChild(tbody);
+        for( i=0; i<5; i++ ){
+            var tr = document.createElement("tr");
+            tbody.appendChild(tr);
+            for( j=0; j<2; j++ ){
+                var td = document.createElement("td");
+                if( j==0 ){
+                    td.width=width;
+                    td.height=height;
+                    td.align="right";
+                }
+                else{
+                    td.width=width2;
+                    td.height=height2;
+                }
+                tr.appendChild(td);
+                var p = document.createElement("p");
+                td.appendChild(p);
+                if(i==0 && j==0){
+                    var text = document.createTextNode("1人にかかる平均対応時間 [sec]");
+                    p.appendChild(text);
+                }
+                else if(i==1 && j==0){
+                    var text = document.createTextNode("応答するまでにかかる時間 [sec]");
+                    p.appendChild(text);
+                }
+                else if(i==2 && j==0){
+                    var text = document.createTextNode("上記の時間内に応答できる確率 [%]");
+                    p.appendChild(text);
+                }
+                else if(i==3 && j==0){
+                    var text = document.createTextNode("単位時間(X方向のセル1つ分)　[min]")
+                    p.appendChild(text);
+                }
+                else if(i==4 && j==0){
+                    var text = document.createTextNode("同時受付可能人数 [agents]");
+                    p.appendChild(text);
+                }
+                else{
+                    var input = document.createElement("input");
+                    p.appendChild(input);
+                    input.type ="number";
+                    input.id = "a"+i;
+                    if(i==0){input.value = 360;}
+                    else if(i==1){input.value =20;}
+                    else if(i==2){input.value = 80;}
+                    else if(i==3){input.value = 60;}
+                    else{input.value = 100;}
+                    input.style.width = "100px";
+                    input.style.height = "20px";
+                }
+            }
+        }
+    }
+    //
+    function TableOutput(s,i,j,k){
+        var p1 = document.getElementById("pid"+i+"_"+j+"_"+k);
+        if( i==0 && j==0 ){}
+        else if(i==0){
+            var text1 = document.createTextNode("<"+j+">");
+            p1.appendChild(text1);
+        }
+        else if(j==0){
+            var text1 = document.createTextNode("<"+i+">");
+            p1.appendChild(text1);
+        }
+        else{
+            var text1 = document.createTextNode(s);
+            p1.appendChild(text1);
+        }
+    }
+
+    //
+    function TableOutput2(wq,i,j,k){
+        var p1 = document.getElementById("pid"+i+"_"+j+"_"+k);
+        if( i==0 && j==0 ){}
+        else if(i==0){
+            text1 = document.createTextNode("<"+j+">");
+            p1.appendChild(text1);
+        }
+         else if(j==0){
+            text1 = document.createTextNode("<"+i+">");
+            p1.appendChild(text1);
+        }
+        else{
+            var text1 = document.createTextNode(wq);
+            p1.appendChild(text1);
+        }
+    }
+
+    //4×2の結果の表を出力する
+    function TableOutput3(a,b,c,d,i,j,k){
+        var p = document.getElementById("pid"+i+"_"+j+"_"+k);
+        if(i==0 && j==0){
+            var text = document.createTextNode("総トラフィック数 [traffics]");
+            p.appendChild(text);
+        }
+        else if(i==1 && j==0){
+            var text = document.createTextNode("総勤務時間数 [hr]");
+            p.appendChild(text);
+        }
+        else if(i==2 && j==0){
+            var text = document.createTextNode("生産性 [traffic/man hour]");
+            p.appendChild(text);
+        }
+        else if(i==3 && j==0){
+            var text = document.createTextNode("平均応答時間 [sec]");
+            p.appendChild(text);
+        }
+        else if(i==0 && j==1){
+            var text = document.createTextNode(a);
+            p.appendChild(text);
+        }
+        else if(i==1 && j==1){
+            var text = document.createTextNode(b);
+            p.appendChild(text);
+        }
+        else if(i==2 && j==1){
+            var text = document.createTextNode(c);
+            p.appendChild(text);
+        }
+        else if(i==3 && j==1){
+            var text = document.createTextNode(d);
+            p.appendChild(text);
+        }
+    }
+
+    //
+    function ErlangCalc(a0,a1,a2,a3,a4,b){
+        var lambda = b, mu = a3 * 60 / a0, Erlang = lambda / mu,
+            p, p0, s=Erlang, rho, i;
+            e = 2.71828182845905, Err=0;
+            if( b==0 ){
+                s=0;
+            }
+            else{
+                do {
+                    pw_1=1;
+                    s++;
+                    if( s > a4 ){//
+                        Err = 1;
+                        break;
+                    }
+                    rho = lambda /( s * mu );
+                    //
+                    p0 = p0calc(s,lambda,mu);
+                    //
+                    //
+                    for( i=1; i<=s; i++ ){
+                        pw_1 *= ( s*rho )/i;
+                    }
+                    //
+                    pw = pw_1 * p0 /( 1-rho );
+                    //
+                    p = pw * Math.pow(e, (rho-1)*mu*s*a1/(a3*60) );
+
+                }while( p>=(1-a2/100) );
+            }
+            if( Err==0 ){
+                return s;
+            }
+            else{
+                return -1;
+            }
+        }
+
+    //
+    function ErlangCalc2(a0,a3,s,i,j,b){
+        var lambda = b, mu = a3 * 60 / a0, rho = lambda /( s * mu ),
+            wq, wq_1=1, wq_2=0, Erlang = lambda / mu;
+        var p0 = p0calc(s,lambda,mu);
+        if(s==0){
+            wq=0;
+        }
+        else{
+            //wqの算出過程
+            for( i=1; i<=s-1; i++ ){
+                wq_1 = wq_1 * Erlang / i;
+            }
+            wq_2 = lambda /( (s*mu-lambda)*(s*mu-lambda) );
+            //wqの算出
+            wq = wq_1 * wq_2 * p0 * ( a3*60 );
+        }
+        return wq;
+    }
+
+    //
+    function p0calc(s,lambda,mu){
+        var Erlang = lambda / mu,
+            p0_1=0, p0_2=1, k;
+        //
+        for( i=0; i<=s-1; i++ ){
+            p0_2 = p0_2 * Erlang /( s-i );
+        }
+        p0_2 = p0_2 * s /( s - Erlang );
+        //
+        for( i=0; i<=s-1; i++ ){
+            k=1;
+            if( i>0 ){
+                for( j=0; j<=i-1; j++ ){
+                    k = k * Erlang /( i - j);
+                }
+            }
+            p0_1 = p0_1 + k;
+        }
+        //
+        return 1/( p0_1 + p0_2 );
+    }
+
+    //表の削除
+    function tabledel(i){
+        //親と子を変数に格納
+        var table1 = document.getElementById("table1");
+        var table2 = document.getElementById("table2");
+        var table00 = document.getElementById("tbody0");
+        var table01　= document.getElementById("tbody1");
+        //親の子を削除
+        if( table00 ){
+            var throwawayNode00 = table1.removeChild(table00);
+        }
+        if( table01 ){
+            var throwawayNode01 = table2.removeChild(table01);
+        }
+        if( i==0 ){
+            var table0 = document.getElementById("table0");
+            var tbody = document.getElementById("tbody");
+            if( tbody ){
+                var throwawayNode = table0.removeChild(tbody);
+            }
+        }
+        var table3 = document.getElementById("table3");
+        var tbody00 = document.getElementById("resulttbody");
+        if( table3 ){
+            var throwawayNode02 = table3.removeChild(tbody00);
+        }
+    }
+
+    //セル数を指定する欄の入力チェック
+    function cellCheck(){
+        var i, j, elementc=[0,0], flagc=[0,0], check=0, i2, max=101;
+        //入力チェック
+        for( i=0; i<=1; i++ ){
+            i2 = i + 5;
+            elementc[i] = document.getElementById("a"+i2);
+            if(elementc[i].value=="" || elementc[i].value <= 0){
+                flagc[i] = 1;
+            }
+            if(elementc[i].value>=max){
+                flagc[i] = 2;
+            }
+        }
+        //入力ミスの警告
+        for( i=0; i<=1; i++ ){
+            if(i==0){i2="表のX方向のセル数";}
+            else{i2="表のY方向のセル数";}
+            if(flagc[i]==1){//チェックしておかしければ(入力漏れや負の値)
+                window.alert(i2+"の値が不正です");//警告ダイアログを表示
+                check = 1;
+                break;
+            }
+            if(flagc[i]==2){
+                window.alert(i2+"の値が大きすぎます")
+                check = 1;
+                break;
+            }
+        }
+        //入力ミスがなければ、表のセル数を書き換える
+        if(check==0){
+            //配列を作る
+            var tablesave = new Array(elementc[1].value+1);
+            for( i=0; i<=elementc[1].value; i++ ){
+                tablesave[i] = new Array(elementc[0])
+            }
+            //セル数が変わっても現在入力された値を引き継ぐために配列に格納
+            for( i=1; i<=elementc[1].value; i++ ){
+                for( j=1; j<=elementc[0].value; j++ ){
+                    if( document.getElementById("b"+i+"_"+j) != null ){
+                        if( document.getElementById("b"+i+"_"+j).value != null ){
+                            tablesave[i][j] = Number(document.getElementById("b"+i+"_"+j).value);
+                        }
+                    }
+                }
+            }
+            //セル数を変える際、表を一度削除して書き直す
+            tabledel(0);
+            TableCreate(0);
+            //既に入力された値を引き継ぐ
+            for( i=1; i<=elementc[1].value; i++ ){
+                for( j=1; j<=elementc[0].value; j++ ){
+                    if( document.getElementById("b"+i+"_"+j).value > 0 ){
+                        document.getElementById("b"+i+"_"+j).value = tablesave[i][j];
+                    }
+                }
+            }
+        }
+    }
+
+// -->
+</script>
+
+
+<style type="text/css">
+<!--
+
+div.ym {
+margin-left: 50px;
+margin-top: 50px;
+margin-right: 50px;
+margin-bottom: 50px;
+background-image:
+background-repeat: repeat-x;
+background-color: #ffffff;
+text-align: left;
+font-size: 12px;
+font-family: 'ヒラギノ角ゴ Pro W3','Hiragino Kaku Gothic Pro','メイリオ',Meiryo,'ＭＳ Ｐゴシック','MS PGothic',sans-serif;
+color: #333333;
+}
+
+h1.ym {margin: 5px 0px 10px 0px;}
+h2.ym {margin: 5px 0px 10px 0px;}
+h3.ym {margin: 5px 0px;}
+h4.ym {margin: 5px 0px;}
+h5.ym {margin: 5px 0px;}
+h6.ym {margin: 5px 0px;}
+
+.sample_02{
+width:100%;
+border-collapse: separate;
+border-spacing: 0px;
+border-top: 1px solid #ccc;
+border-left: 1px solid #ccc;
+width: 400px;
+height: 50px;
+}
+.sample_02 th{
+width: 25%;
+padding: 4px;
+text-align: left;
+vertical-align: top;
+color: #444;
+background-color: #ccc;
+border-top: 1px solid #fff;
+border-left: 1px solid #fff;
+border-right: 1px solid #ccc;
+border-bottom: 1px solid #ccc;
+}
+.sample_02 td{
+padding: 4px;
+background-color: #fafafa;
+border-right: 1px solid #ccc;
+border-bottom: 1px solid #ccc;
+}
+
+p.ym {
+line-height: 20px;
+ }
+ 
+ -->
+</style>
+
+<!-- center -->
+<table width="585" border="0" align="center" cellpadding="0" cellspacing="0">
+<tr>
+<td align="left" valign="top">
+
+
+
+
+
+
+<div class="ym">
+<p class="ym">WINWORKS Oneの必要人員数をサービスレベルモデルを用いて算出します。</p>
+
+    <h1 id="Top" class="ym">Web専用計算ページ</h1>
+    <p class="ym">
+必要事項を入力し、<b>計算ボタン</b> をクリックしてください<br />
+このページ下部に時間帯ごとの <b>要員数</b>、および <b>平均応答時間</b> の計算結果が表示されます</p>
+
+    <br />
+    <h2 class="ym">セル数（入力欄）</h2>
+    <p class="ym">X方向、Y方向それぞれのセル数を入力し、<b>セル数反映ボタン</b> をクリックしてください<br />
+セル数の上限は100です</p>
+    <table class="sample_02" id="inputtable"></table>
+    <p class="ym"><input type="button" value="セル数反映" onclick="cellCheck();" /></p>
+    <br />
+    <h2 class="ym">パフォーマンス・パラメータ（入力欄）</h2>
+    <p class="ym">各パラーメータを直接入力してください<br />
+    </p><table class="sample_02" id="inputtable2"></table>
+    <p class="ym"><input type="button" value="計算" onclick="InputCheck();" /></p>
+
+    <br />
+
+<small>
+    <p class="ym"><a href="#Top">ページトップ</a> /
+    <a href="#result3">全体パフォーマンスの計算結果</a> /
+    <a href="#result1">要員数の計算結果</a> /
+    <a href="#result2">平均応答時間の計算結果</a></p>
+</small>
+    <br />
+    <h2 class="ym">時間帯別トラフィック数（入力欄）</h2>
+    <p class="ym">日ごと時間帯ごとのトラフィック数を直接入力してください<br />
+    </p><table class="sample_02" id="table0"></table>
+    <p class="ym"><input type="button" value="計算" onclick="InputCheck();" /></p>
+
+    <br />
+
+<small>
+    <p class="ym"><a href="#Top">ページトップ</a> /
+    <a href="#result3">全体パフォーマンスの計算結果</a> /
+    <a href="#result1">要員数の計算結果</a> /
+    <a href="#result2">平均応答時間の計算結果</a></p>
+</small>
+
+    <br />
+    <h2 id="result3" class="ym">全体パフォーマンス（自動計算）</h2>
+    <table class="sample_02" id="table3"></table>
+
+    <br />
+
+<small>
+    <p class="ym"><a href="#Top">ページトップ</a> /
+    <a href="#result3">全体パフォーマンスの計算結果</a> /
+    <a href="#result1">要員数の計算結果</a> /
+    <a href="#result2">平均応答時間の計算結果</a></p>
+</small>
+
+    <br />
+    <h2 id="result1" class="ym">要員数（自動計算）</h2>
+    <table class="sample_02" id="table1"></table>
+    <br />
+    <small>
+    <p class="ym"><a href="#Top">ページトップ</a> /
+    <a href="#result3">全体パフォーマンスの計算結果</a> /
+    <a href="#result1">要員数の計算結果</a> /
+    <a href="#result2">平均応答時間の計算結果</a></p>
+    </small>
+    <br />
+    <h2 id="result2" class="ym">平均応答時間（自動計算）</h2>
+    <table class="sample_02" id="table2"></table>
+    <br />
+    <small>
+    <p class="ym"><a href="#Top">ページトップ</a> /
+    <a href="#result3">全体パフォーマンスの計算結果</a> /
+    <a href="#result1">要員数の計算結果</a> /
+    <a href="#result2">平均応答時間の計算結果</a></p>
+    </small>
+</div>
+
+<script>
+TableCreate(1);
+</script>
+
+
+</td>
+</tr>
+</table>
+
+<!-- center end -->
+

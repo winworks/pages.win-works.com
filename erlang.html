@@ -1,13 +1,18 @@
-﻿<script type="text/javascript">
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
 <!--
 
-
+/*
+    s - number of staff, wq - response time , elementb - number of traffic, elementa - performance parametars 
+    flaga and flagb - flags if elementa or elementb have bad input
+*/
     function InputCheck(){
         var flaga = [0,0,0,0,0], UserInput = [0,0,0,0,0];
         var flagb = []
         var i, i2, j, k, check = 0, UserInput2 = [];
         var elementa = [0,0,0,0,0], elementb = [], s=[], wq=[];
-        var tbody = [0,0], tr=[0,0], td=[0,0], p1=new Array(), max=101;
+        var tbody = [0,0], tr=[0,0], td=[0,0], p1=[], max=101;
         var width=55, height=40, add=0, add2=0, add3=0;
         var tablesave=[];
         //
@@ -20,7 +25,7 @@
             tablesave[i] = [0,0,0,0,0,0,0,0,0,0,0,0,0];
         }
         for( i=0; i<max; i++ ){
-            p1[i] = new Array();
+            p1[i] = [];
         }
         for( i=0; i<max; i++ ){
             for( j=0; j<max; j++ ){
@@ -59,8 +64,7 @@
                 }
             }
         }
-        //
-        //
+        // Error message if some data in flaga is not good
         for( i=0; i<5; i++ ){
             if(flaga[i]==1){//
                 if(i==0){i2="Average Handling Time";}
@@ -73,7 +77,7 @@
                 break;
             }
         }
-        //
+        // Error message if some data in flagb is not good
         if( check==0 ){
             for( i=1; i<celly; i++ ){
                 for( j=1; j<cellx; j++ ){
@@ -88,7 +92,7 @@
                 }
             }
         }
-        //
+        // Calculating Erlang and Erlang2
         if(check == 0){
             //
             for( i = 0; i < 5; i++ ){
@@ -99,17 +103,22 @@
                     for( j = 0; j < cellx; j++ ){
                         if( j>0 ){
                             //
-                            UserInput2[i][j] = InputNum2(i,j);
-                            //sを計算
-                            s[i][j] = ErlangCalc( UserInput[0], UserInput[1], UserInput[2], UserInput[3], UserInput[4], UserInput2[i][j] );
-                            if( s[i][j] > (-1) ){//
-                                //
-                                wq[i][j] = ErlangCalc2( UserInput[0], UserInput[3], s[i][j], i, j, UserInput2[i][j] );
-                            }
-                            else{
-                                s[i][j] = -"NA";
-                                wq[i][j] = "NA";
-                            }
+                            do{
+                                UserInput2[i][j] = InputNum2(i,j);
+                                //sを計算
+                                if(s[i][j]==0)
+                                    s[i][j] = ErlangCalc( UserInput[0], UserInput[1], UserInput[2], UserInput[3], UserInput[4], UserInput2[i][j] );
+                                if( s[i][j] > (-1) ){//
+                                    //
+                                    wq[i][j] = Math.ceil(ErlangCalc2( UserInput[0], UserInput[3], s[i][j], i, j, UserInput2[i][j] ));
+                                }
+                                else{
+                                    s[i][j] = -"NA";
+                                    wq[i][j] = "NA";
+                                }
+                             if(wq[i][j]>UserInput[1])
+                                s[i][j]++;  
+                            }while(wq[i][j]>UserInput[1] && wq!="NA");
                         }
                         else{
                             s[i][j]=0, wq[i][j]=0;
@@ -124,14 +133,7 @@
             }
         }
 
-        //
-        for( i=1; i<celly; i++ ){
-            for( j=1; j<cellx; j++ ){
-                s[i][j] = Math.round(s[i][j]);
-                wq[i][j] = Math.round(wq[i][j]);
-            }
-        }
-        //既にある表を削除する
+        // Saving data from the old table and deleting it
         for( k=0; k<=1; k++ ){
             for( i=0; i<celly; i++ ){
                 for( j=0; j<cellx.value; j++ ){
@@ -145,7 +147,7 @@
         }
         tabledel(1);
         //
-        //
+        // Creating new tables
         for( k=0; k<=2; k++ ){
             if(k<2){
                 tbody[k] = document.createElement("tbody");
@@ -231,11 +233,14 @@
                     }
                 }
             }
+       
         }
+        callDraw(UserInput2,s,cellx,celly);
     }
 
     //ユーザーが入力した表以外の値を返す
     function InputNum(i){
+        
         return Number(document.getElementById("a"+i).value);
     }
     //ユーザーが入力した表の値を返す
@@ -246,6 +251,7 @@
     }
     //ユーザーが入力したセルの数を返す
     function InputNum3(i){
+        
         return Number(document.getElementById("a"+5).value);
     }
 
@@ -453,7 +459,8 @@
     }
 
     //入力フォームを作る
-    function inputCreate2(){var i, j, width=300; height=40, width2=100, height2=40;
+    function inputCreate2(){
+        var i, j, width=300; height=40, width2=100, height2=40;
         //親から順に「table」,「tbody」,「tr」,「td」複数個の順で並べる
         var tbody = document.createElement("tbody");
         tbody.id = "inputtbody";
@@ -584,10 +591,10 @@
         }
     }
 
-    //
+    // Calculating the number of staff needed
     function ErlangCalc(a0,a1,a2,a3,a4,b){
         var lambda = b, mu = a3 * 60 / a0, Erlang = lambda / mu,
-            p, p0, s=Erlang, rho, i;
+            p, p0, s=Math.ceil(Erlang), rho, i;
             e = 2.71828182845905, Err=0;
             if( b==0 ){
                 s=0;
@@ -611,8 +618,7 @@
                     //
                     pw = pw_1 * p0 /( 1-rho );
                     //
-                    p = pw * Math.pow(e, (rho-1)*mu*s*a1/(a3*60) );
-
+                    p = pw * Math.pow(e, (rho-1)*s*a1/a0 );   
                 }while( p>=(1-a2/100) );
             }
             if( Err==0 ){
@@ -623,7 +629,7 @@
             }
         }
 
-    //
+    // Calculating the response time
     function ErlangCalc2(a0,a3,s,i,j,b){
         var lambda = b, mu = a3 * 60 / a0, rho = lambda /( s * mu ),
             wq, wq_1=1, wq_2=0, Erlang = lambda / mu;
@@ -643,27 +649,24 @@
         return wq;
     }
 
-    //
     function p0calc(s,lambda,mu){
         var Erlang = lambda / mu,
-            p0_1=0, p0_2=1, k;
-        //
-        for( i=0; i<=s-1; i++ ){
-            p0_2 = p0_2 * Erlang /( s-i );
-        }
-        p0_2 = p0_2 * s /( s - Erlang );
-        //
-        for( i=0; i<=s-1; i++ ){
-            k=1;
-            if( i>0 ){
-                for( j=0; j<=i-1; j++ ){
-                    k = k * Erlang /( i - j);
-                }
+            p0_1=1, p0_2=1, k;
+        for( i = 1; i < s; i++){
+            var help=1;
+            for( j = 2; j <= i+1; j++){
+                help = help * Erlang / (j-1); 
+                var z=j-1;
             }
-            p0_1 = p0_1 + k;
+            p0_1 = p0_1 + help;
         }
-        //
-        return 1/( p0_1 + p0_2 );
+        //second part of the eq
+        p0_2=Erlang;
+        for( i=1;i<s; i++)
+           p0_2=p0_2 * Erlang / i;
+        p0_2 = p0_2 /( s - Erlang);
+
+        return 1/(p0_1+p0_2);  
     }
 
     //表の削除
@@ -754,6 +757,52 @@
         }
     }
 
+ // Drawing the graph ( Google charts)   
+var GlobalInputData = [[]];
+
+    function callDraw(array1,array2,size1,size2){
+        google.charts.load('current', { packages: ['corechart'], callback: drawChart});
+
+        var i=0,j=0;
+        var both ={};
+        for(i= 0; i < size2 ; i++)
+          for(j=0; j < size1; j++)
+                if(array1[i][j] != 0){
+                both[array1[i][j]] = array2[i][j];
+                }
+        
+        var count=0;
+        for(var key in both)
+          count ++;
+        for(i=0;i<count+1;i++)
+          GlobalInputData[i]=[]; 
+        GlobalInputData[0][0] = "Number of traffic";
+        GlobalInputData[0][1] = "Number of staff";
+        
+        var index=1;
+        for(var key in both){
+          GlobalInputData[index][0] = key;
+          GlobalInputData[index][1] = both[key];
+          index++
+        }
+        google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+      
+        if(!!GlobalInputData)
+            var data = google.visualization.arrayToDataTable(GlobalInputData);
+        var options = {
+          //title: 'Company Performance',
+          legend: { position: 'none'}, 
+          hAxis: {title: 'No. of traffic',  titleTextStyle: {color: '#333'}},
+          vAxis: {title: 'No. of staff' , minValue: 0},
+          color: ['b3004d']
+        };
+        var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+    }
+
 // -->
 </script>
 
@@ -809,7 +858,10 @@ background-color: #fafafa;
 border-right: 1px solid #ccc;
 border-bottom: 1px solid #ccc;
 }
-
+.chart {
+width: 100%;
+height: 500px;"
+}
 p.ym {
 line-height: 20px;
  }
@@ -903,6 +955,7 @@ line-height: 20px;
     <a href="#result1">要員数の計算結果</a> /
     <a href="#result2">平均応答時間の計算結果</a></p>
     </small>
+    <div id="chart_div" class="chart" ></div>
 </div>
 
 <script>

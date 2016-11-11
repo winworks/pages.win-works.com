@@ -779,10 +779,12 @@ var GlobalInputData = [[]];
         GlobalInputData[0][0] = "Number of traffic";
         GlobalInputData[0][1] = "Number of staff";
         
-        var index=1;
+        var index=1,minimum=99999999;
         for(var key in both){
           GlobalInputData[index][0] = parseInt(key);
           GlobalInputData[index][1] = both[key];
+          if(both[key] < minimum)
+            minimum = both[key];
           index++
         }
         google.charts.setOnLoadCallback(drawChart);
@@ -795,7 +797,7 @@ var GlobalInputData = [[]];
           //title: 'Company Performance',
           legend: { position: 'none'}, 
           hAxis: {title: 'No. of traffic',  titleTextStyle: {color: '#333'}},
-          vAxis: {title: 'No. of staff' , minValue: 0},
+          vAxis: {title: 'No. of staff' , viewWindow: { min: minimum*3/4 }},
           color: ['b3004d']
         };
         var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
